@@ -21,6 +21,7 @@
 %   l        : OAM 拓扑荷（默认 +1）
 
 clear; clc;
+output_dir = fileparts(mfilename('fullpath'));
 
 %% 1. 实验与器件参数（SI 单位）
 lambda0 = 905e-9;      % 工作波长 [m]
@@ -95,7 +96,7 @@ params = struct( ...
     'theta_m1_deg', theta_m1_deg, 'theta_0_deg', theta_0_deg, ...
     'theta_p1_deg', theta_p1_deg, 'kr_per_m', kr);
 
-save('target_phases_905nm.mat', ...
+save(fullfile(output_dir, 'target_phases_905nm.mat'), ...
     'X', 'Y', 'R', 'Theta', ...
     'phiC_m1', 'phiC_0', 'phiC_p1', 'A0_target', ...
     'phiT_m1', 'phiT_0', 'phiT_p1', 'params');
@@ -121,7 +122,8 @@ for n = 1:3
 end
 sgtitle(sprintf(['Target phases for 905 nm, S_x = %.0f nm, ', ...
     '\theta_{\pm1} = \pm%.2f^\circ'], Sx*1e9, theta_p1_deg));
-exportgraphics(gcf, 'target_phase_maps_905nm.png', 'Resolution', 300);
+exportgraphics(gcf, fullfile(output_dir, 'target_phase_maps_905nm.png'), ...
+    'Resolution', 300);
 
 %% 7. 命令行摘要
 fprintf('Target phase files created successfully.\\n');
