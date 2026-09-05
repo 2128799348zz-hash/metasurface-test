@@ -1,0 +1,133 @@
+文件说明：target_phases_905nm.mat
+对应生成脚本：generate_target_phases_905nm.m
+
+一、用途
+本 MAT 文件保存 905 nm、正入射、三通道超表面验证所需的坐标和目标相位。
+
+三个设计通道为：
+  N = -1：聚焦 OAM 光束，拓扑荷 l = +1
+  N =  0：平面波（准直 Gaussian 入射时保持原有 Gaussian 波前）
+  N = +1：Bessel 光束
+
+二、矩阵尺寸与坐标约定
+默认设计为：
+  Nx = 20：x 方向有 20 个 supercell
+  Ny = 60：y 方向有 60 个 supercell
+
+因此所有二维矩阵的尺寸均为：
+  Ny × Nx = 60 × 20
+
+矩阵的行对应 y 方向，列对应 x 方向：
+  第 j 行、第 i 列对应第 i 个 x 向 supercell 与第 j 个 y 向 supercell 的中心。
+
+三、MAT 文件变量说明
+
+1. X
+  含义：x 坐标矩阵。
+  单位：m。
+  尺寸：Ny × Nx。
+  特点：同一列的 X 值相同，表示该列所有 supercell 的 x 坐标。
+
+2. Y
+  含义：y 坐标矩阵。
+  单位：m。
+  尺寸：Ny × Nx。
+  特点：同一行的 Y 值相同，表示该行所有 supercell 的 y 坐标。
+
+3. R
+  含义：径向距离矩阵。
+  定义：R = sqrt(X.^2 + Y.^2)。
+  单位：m。
+  尺寸：Ny × Nx。
+  用途：构造 Bessel 轴锥相位及聚焦球面相位。
+
+4. Theta
+  含义：方位角矩阵。
+  定义：Theta = atan2(Y, X)。
+  单位：rad，取值范围为 [-pi, pi]。
+  尺寸：Ny × Nx。
+  用途：构造 OAM 螺旋相位 l*Theta。
+
+5. phiC_m1
+  含义：-1 级的“结构部分”目标相位矩阵。
+  单位：rad，经过 mod(phi, 2*pi) 后范围为 [0, 2*pi)。
+  尺寸：Ny × Nx。
+  公式：
+    phiC_m1 = k0*(sqrt(R.^2 + f.^2) - f) + l*Theta
+  物理功能：聚焦球面相位 + OAM 螺旋相位，目标为 focused OAM beam。
+  FDTD 建库匹配：应与 library 中第 -1 级复系数 C_-1 的相位比较。
+
+6. phiC_0
+  含义：0 级的“结构部分”目标相位矩阵。
+  单位：rad。
+  尺寸：Ny × Nx。
+  值：全零矩阵。
+  物理功能：不对 0 级施加额外空间相位，因此保持平面波波前。
+  FDTD 建库匹配：应要求 library 中 C_0 的相位尽量为常数（不一定必须是 0 rad）。
+
+7. phiC_p1
+  含义：+1 级的“结构部分”目标相位矩阵。
+  单位：rad，范围为 [0, 2*pi)。
+  尺寸：Ny × Nx。
+  公式：
+    phiC_p1 = k0*sin(beta)*R
+  物理功能：轴锥相位，目标为零阶 Bessel 光束。
+  FDTD 建库匹配：应与 library 中第 +1 级复系数 C_+1 的相位比较。
+
+8. phiT_m1
+  含义：-1 级的理论总相位矩阵，仅用于核查和展示。
+  单位：rad，范围为 [0, 2*pi)。
+  尺寸：Ny × Nx。
+  公式：
+    phiT_m1 = -2*pi*X/Sx + phi_focus + phi_oam
+  物理功能：-1 级衍射载波 + 聚焦 + OAM。
+
+9. phiT_0
+  含义：0 级理论总相位矩阵。
+  单位：rad。
+  尺寸：Ny × Nx。
+  值：与 phiC_0 相同的全零矩阵。
+
+10. phiT_p1
+  含义：+1 级的理论总相位矩阵，仅用于核查和展示。
+  单位：rad，范围为 [0, 2*pi)。
+  尺寸：Ny × Nx。
+  公式：
+    phiT_p1 = +2*pi*X/Sx + k0*sin(beta)*R
+  物理功能：+1 级衍射载波 + Bessel 轴锥相位。
+
+四、params 结构体字段
+
+  lambda0_m              工作波长，单位 m。
+  Sx_m、Sy_m             x、y 方向 supercell 周期，单位 m。
+  Nx、Ny                 x、y 方向 supercell 数。
+  Lx_m、Ly_m             器件总尺寸，单位 m。
+  beta_deg               Bessel 锥角，单位 deg。
+  f_um                   focused OAM 的设计焦距，单位 um。
+  topological_charge_l   OAM 拓扑荷。
+  theta_m1_deg           -1 级理论衍射角，单位 deg。
+  theta_0_deg            0 级理论衍射角，单位 deg。
+  theta_p1_deg           +1 级理论衍射角，单位 deg。
+  kr_per_m               Bessel 横向波数 kr = k0*sin(beta)，单位 m^-1。
+
+五、后续结构匹配时应使用的数据
+
+对每一个器件位置 (j, i)，从 FDTD library 中选择一个 supercell。
+匹配时的核心目标是：
+  -1 级相位目标：phiC_m1(j, i)
+   0 级相位目标：phiC_0(j, i)，并保持相位近似恒定
+  +1 级相位目标：phiC_p1(j, i)
+
+不要把 phiT_m1 和 phiT_p1 直接用于 library 的逐单元相位匹配。
+原因是固定周期 Sx 所对应的 +/-1 级衍射载波，已经由 Floquet 衍射级次本身给出；
+library 的 C_N 需要匹配的是 phiC_N，即各级次内部的功能波前。
+
+六、相位比较方法
+
+相位具有 2*pi 周期性。设仿真得到的相位为 phi_sim，目标相位为 phi_target，
+应使用环形相位误差：
+
+  delta_phi = angle(exp(1i*(phi_sim - phi_target)))
+
+而不是直接使用 phi_sim - phi_target。
+
