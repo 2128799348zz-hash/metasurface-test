@@ -12,6 +12,7 @@
   基底：SiO2，初始折射率 n = 1.45。
   棱柱：TiO2，初始折射率 n = 2.30，高度 650 nm。
   上包层：空气。
+  透射监视器：基底侧二维频域监视器，名称为 T。
   x/y 边界：Periodic。
   z 边界：PML。
   周期：Sx = 1350 nm，Sy = 450 nm。
@@ -21,8 +22,14 @@
   2. 打开并运行 build_905nm_supercell.lsf。
   3. 在 Layout 中检查 SiO2 基底和两根 TiO2 柱的位置及尺寸。
   4. 在 FDTD 的 Advanced Options 中确认 PML profile 使用 Steep angle。
-  5. 点击 Run，完成后在 Script Prompt 执行脚本末尾已注释的 grating 分析段。
-  6. 记录每组几何下的 eta_-1、eta_0、eta_+1；后续再提取各 C_N 的复振幅。
+  5. 点击 Run。
+  6. 在 Script Prompt 运行 extract_T_orders。
+  7. 修改 extract_T_orders.lsf 中的 sample_id，为每组结构保存独立结果。
+
+提取结果：
+  T_orders_<sample_id>.txt：三行数据，分别为 -1、0、+1 级的级次编号、效率 eta_N、
+  相位 phi_N（rad）。
+  T_orders_<sample_id>.ldf：同一组数值及复振幅，供后续读取。
 
 注意：
   当前棱柱横向尺寸、位置和高度只是第一组可运行的起点，并非最终优化结构。

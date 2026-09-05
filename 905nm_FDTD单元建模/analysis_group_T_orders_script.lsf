@@ -1,0 +1,47 @@
+# 粘贴位置：Analysis Group -> Analysis -> Script
+# 前提：监视器 T 已经位于这个 Analysis Group 内。
+# 输出侧：SiO2 基底；透射光沿 -z 传播。
+
+monitor_name = "T";
+output_index = 1.45;
+projection_direction = -1;
+frequency_index = 1;
+
+# grating()：各级次占总透射功率的比例；
+# transmission()：总透射功率相对于入射功率的比例。
+G = grating(monitor_name, frequency_index, output_index, projection_direction);
+N = gratingn(monitor_name, frequency_index, output_index, projection_direction);
+M = gratingm(monitor_name, frequency_index, output_index, projection_direction);
+T_total = abs(pinch(transmission(monitor_name)));
+
+# gratingvector() 返回复矢量 [Ex,Ey,Ez]。
+# 源为 x 偏振、目标级次 m=0，故使用复 Ex 的相角作为 phi_N。
+Gv = gratingvector(monitor_name, frequency_index, output_index, projection_direction);
+
+ix_m1 = find(N,-1);
+ix_0  = find(N, 0);
+ix_p1 = find(N, 1);
+iy_0  = find(M, 0);
+
+# 三个级次相对于入射功率的透射效率。
+eta_m1 = pinch(G(ix_m1,iy_0,frequency_index))*T_total;
+eta_0  = pinch(G(ix_0, iy_0,frequency_index))*T_total;
+eta_p1 = pinch(G(ix_p1,iy_0,frequency_index))*T_total;
+
+# 三个级次的复 Ex 振幅与相位。统一映射到 [0, 2*pi)，
+# 以便直接和 MATLAB 的 phiC_m1、phiC_0、phiC_p1 进行环形相位匹配。
+A_m1 = pinch(Gv(ix_m1,iy_0,frequency_index,1));
+A_0  = pinch(Gv(ix_0, iy_0,frequency_index,1));
+A_p1 = pinch(Gv(ix_p1,iy_0,frequency_index,1));
+
+phi_m1 = mod(angle(A_m1), 2*pi);
+phi_0  = mod(angle(A_0),  2*pi);
+phi_p1 = mod(angle(A_p1), 2*pi);
+
+# 汇总矩阵：行对应 N=-1,0,+1；列为 [N, eta_N, phi_N(rad)]。
+order_results = [-1, eta_m1, phi_m1;
+                  0, eta_0,  phi_0;
+                  1, eta_p1, phi_p1];
+
+?"Columns: order, eta_N, phi_N [rad]";
+?order_results;

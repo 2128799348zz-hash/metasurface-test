@@ -1,0 +1,46 @@
+目标：让 Analysis Group 自动输出 -1、0、+1 级的效率 eta_N 与相位 phi_N。
+
+前提：
+  1. 监视器名称必须为 T。
+  2. 监视器 T 必须在该 Analysis Group 的子节点内。
+  3. 本模型中光从空气侧沿 -z 进入 SiO2 基底，因此分析脚本使用
+     output_index = 1.45 和 projection_direction = -1。
+
+配置步骤：
+  1. 右键 Analysis Group，选择 Edit object。
+  2. 打开 Analysis -> Variables。
+  3. 在 Results 区域点击 Add，依次添加以下 7 个结果名：
+
+       eta_m1
+       eta_0
+       eta_p1
+       phi_m1
+       phi_0
+       phi_p1
+       order_results
+
+     名称必须与 analysis_group_T_orders_script.lsf 中的变量名完全一致。
+
+  4. 打开 Analysis -> Script。
+  5. 将 analysis_group_T_orders_script.lsf 的全部内容复制并粘贴进去。
+  6. 点击 OK 保存。
+  7. 运行 FDTD；在 Analysis 模式中点击 Run Analysis。
+
+结果含义：
+  eta_m1、eta_0、eta_p1：
+    -1、0、+1 级相对于入射功率的透射效率。
+
+  phi_m1、phi_0、phi_p1：
+    由各级次复 Ex 投影得到的相位，单位 rad，范围 [0,2*pi)。
+    对所有 library 单元必须使用固定的 T 位置、偏振、波长和投影方向。
+
+  order_results：
+    3 x 3 矩阵。行对应 N=-1、0、+1；列为：
+    [衍射级次编号 N，效率 eta_N，相位 phi_N(rad)]。
+
+用于 Parameter Sweep：
+  在 Optimizations and Sweeps 中，将该 Analysis Group 的以上结果添加为 Sweep Results。
+  每一组棱柱几何参数运行结束后，Parameter Sweep 会自动保存对应结果。
+
+说明：
+  本组不使用 extract_T_orders.lsf；后者保留为独立调试/导出工具。

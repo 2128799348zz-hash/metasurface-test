@@ -102,6 +102,9 @@ if (getnamednumber("T_air")>0) {
 if (getnamednumber("T_substrate")>0) {
     select("T_substrate"); delete;
 }
+if (getnamednumber("T")>0) {
+    select("T"); delete;
+}
 
 ###############################################################################
 # 4. 材料与结构：SiO2 基底 + 两根 TiO2 矩形棱柱
@@ -174,10 +177,10 @@ set("wavelength stop",lambda0);
 set("polarization angle",0);  # x 偏振；后续可改为 90 deg 做 y 偏振对照
 
 ###############################################################################
-# 7. 基底侧频域监视器：用于 grating() 提取各透射级次效率
+# 7. 基底侧频域监视器 T：用于提取各透射级次的效率和复振幅
 ###############################################################################
 adddftmonitor;
-set("name","T_substrate");
+set("name","T");
 set("monitor type",7);  # 2D Z-normal monitor
 set("x",0);
 set("x span",Sx);
@@ -186,25 +189,10 @@ set("y span",Sy);
 set("z",z_T_monitor);
 
 ###############################################################################
-# 8. 运行后的级次效率提取（复制到 Script Prompt 或取消注释后运行）
+# 8. 运行后的级次效率与相位提取
 ###############################################################################
-# run;
+# 完成 Run 后，在 Script Prompt 运行：
+#   extract_T_orders;
 #
-# T = transmission("T_substrate"); # 总透射功率 / 入射功率
-# N = gratingn("T_substrate");     # x 向衍射级次编号
-# M = gratingm("T_substrate");     # y 向衍射级次编号
-# G = grating("T_substrate");      # 每个级次占总透射功率的比例
-#
-# ix_m1 = find(N,-1);  ix_0 = find(N,0);  ix_p1 = find(N,1);
-# iy_0  = find(M,0);
-#
-# eta_m1 = pinch(G(ix_m1,iy_0,1))*pinch(T(1));
-# eta_0  = pinch(G(ix_0, iy_0,1))*pinch(T(1));
-# eta_p1 = pinch(G(ix_p1,iy_0,1))*pinch(T(1));
-#
-# ?("Transmission efficiency: eta_-1 = "+num2str(eta_m1));
-# ?("Transmission efficiency: eta_0  = "+num2str(eta_0));
-# ?("Transmission efficiency: eta_+1 = "+num2str(eta_p1));
-#
-# 说明：grating() 给出功率效率。建立 library 时还需利用 T_substrate 的复电场
-# 或 gratingpolar()/gratingvector() 提取各级次复振幅及相位 C_N。
+# 该分析脚本将从 T 输出 eta_-1、eta_0、eta_+1 与 phi_-1、phi_0、phi_+1，
+# 并保存对应的 TXT 与 LDF 文件。请为每个几何结构修改其中的 sample_id。
