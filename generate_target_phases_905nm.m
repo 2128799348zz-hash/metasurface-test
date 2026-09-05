@@ -3,7 +3,7 @@
 %
 % 最终实验计划：
 %   N = -1 : focused OAM beam, l = +1
-%   N =  0 : planar (Gaussian input keeps its original wavefront)
+%   N =  0 : plane wave
 %   N = +1 : zero-order Bessel beam
 %
 % 重要：本文件的 phiC_* 是要与单 supercell FDTD library 中 C_N 的
@@ -54,8 +54,11 @@ f    = f_um * 1e-6;
 kr   = k0 * sin(beta);
 
 %% 3. 三个级次的结构部分目标相位 phiC_N（供 FDTD library 匹配）
-% N = 0：不额外施加空间相位；准直 Gaussian 入射时保持 Gaussian 波前。
+% N = 0：平面波正入射且不额外施加空间相位，因此输出保持平面波相位。
 phiC_0 = zeros(Ny, Nx);
+% 平面波还要求振幅在器件面上均匀；此处仅定义归一化空间分布，
+% 实际绝对振幅/效率由 FDTD library 的 C_0 决定。
+A0_target = ones(Ny, Nx);
 
 % N = +1：轴锥相位。正负号取决于所采用的时间因子约定；这里采用
 % exp(-i*omega*t) 下常用的 +kr*R 写法。若传播验证显示为发散锥，
@@ -94,7 +97,7 @@ params = struct( ...
 
 save('target_phases_905nm.mat', ...
     'X', 'Y', 'R', 'Theta', ...
-    'phiC_m1', 'phiC_0', 'phiC_p1', ...
+    'phiC_m1', 'phiC_0', 'phiC_p1', 'A0_target', ...
     'phiT_m1', 'phiT_0', 'phiT_p1', 'params');
 
 %% 6. 绘图并保存，单位为 rad；行=y，列=x
