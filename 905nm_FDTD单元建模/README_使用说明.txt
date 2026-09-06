@@ -10,7 +10,7 @@
   工作波长：905 nm。
   入射光：从空气侧沿 -z 方向正入射的 x 偏振平面波。
   基底：SiO2，初始折射率 n = 1.45。
-  棱柱：TiO2，初始折射率 n = 2.30，固定高度 630 nm。
+  棱柱：TiO2，初始折射率 n = 2.30；两柱共用 height 用户参数（初始可设为 630 nm）。
   上包层：空气。
   透射监视器：基底侧二维频域监视器，名称为 T。
   x/y 边界：Periodic。
@@ -22,7 +22,7 @@
   2. 打开并运行 build_905nm_supercell.lsf。
   3. 将 model_setup_gap_control.lsf 粘贴到根分析组 model 的 Setup -> Script。
   4. 在 model 的 User properties 中填入固定初值（单位为 um）：
-       x1=-0.25，y1=0，x1span=0.25，y1span=0.20，y2=0，
+       x1=-0.25，y1=0，x1span=0.25，y1span=0.20，y2=0，height=0.63，
        x2span=0.10，y2span=0.10，gap=0.04。
   5. 在 Layout 中检查 SiO2 基底和两根 TiO2 柱的位置及尺寸。
   6. 在 FDTD 的 Advanced Options 中确认 PML profile 使用 Steep angle。
@@ -31,6 +31,7 @@
 
 Parameter Sweep（210 组粗扫描）：
   - 直接扫描 model 的 User properties；不再在 Sweep 中填写 x2。
+    height 也可以作为第四个扫描参数；脚本会同步移动光源、FDTD 顶部边界和局部网格。
   - 三个参数均选择 Type = Length：
       ::model::x2span：0.10 至 0.40 um，步长 0.05 um（7 点）；
       ::model::y2span：0.10 至 0.30 um，步长 0.05 um（5 点）；
