@@ -40,6 +40,11 @@ Parameter Sweep（210 组粗扫描）：
   - 每次更新 User property 后，model 的 Setup script 会自动令
       x2=x1+x1span/2+gap+x2span/2，
     所以 gap 始终是两柱的实际边缘间隔。
+  - Setup script 会先检查几何合法性：各尺寸为正、gap 为正、两个柱均不接触
+    周期边界、两个柱彼此不接触。未来扫描 x1 时，同样受此检查保护。
+    若参数不合法，脚本会在写入几何和启动 FDTD 前报错；请将该扫描点排除或
+    收窄扫描范围。部分 Lumerical 版本会在报错后停止整个 sweep，而非自动跳过
+    当前点，因此建议先用合法范围预检。
   - 将 analysis_group_T_orders_script.lsf 粘贴到 model 的 Analysis -> Script，
     并将 eta_m1、eta_0、eta_p1、phi_m1、phi_0、phi_p1 加为 Analysis Results，
     即可把六个标量结果写入 sweep 表。
