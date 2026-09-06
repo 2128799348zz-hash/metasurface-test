@@ -1,0 +1,52 @@
+# model_setup_gap_control.lsf
+# 粘贴位置：根分析组 model -> Setup -> Script。
+#
+# model 的 User properties 必须包含：
+# x1, y1, gap, y2, x1span, y1span, x2span, y2span（均为 Length）。
+#
+# 扫描时只需改变 gap、x2span、y2span；本脚本会自动更新 TiO2_prism_2 的
+# x 坐标，使 gap 始终是两根棱柱在 x 方向的“边缘到边缘”间隔：
+# x2 = x1 + x1span/2 + gap + x2span/2。
+
+###############################################################################
+# 从 model 的 User properties 读取几何参数
+###############################################################################
+pillar1_x     = %x1%;
+pillar1_y     = %y1%;
+pillar1_xspan = %x1span%;
+pillar1_yspan = %y1span%;
+
+pillar2_y     = %y2%;
+pillar2_xspan = %x2span%;
+pillar2_yspan = %y2span%;
+pillar_gap    = %gap%;
+
+# 第一阶段固定高度；若未来也要扫描高度，可把 630e-9 改为新的 User property。
+prism_height = 630e-9;
+
+###############################################################################
+# 依据 gap 计算 pillar 2 中心位置
+###############################################################################
+pillar2_x = pillar1_x + pillar1_xspan/2 + pillar_gap + pillar2_xspan/2;
+
+###############################################################################
+# 更新 model 组内的两个 TiO2 矩形棱柱
+###############################################################################
+setnamed("TiO2_prism_1", "x",      pillar1_x);
+setnamed("TiO2_prism_1", "y",      pillar1_y);
+setnamed("TiO2_prism_1", "x span", pillar1_xspan);
+setnamed("TiO2_prism_1", "y span", pillar1_yspan);
+setnamed("TiO2_prism_1", "z min",  0);
+setnamed("TiO2_prism_1", "z max",  prism_height);
+
+setnamed("TiO2_prism_2", "x",      pillar2_x);
+setnamed("TiO2_prism_2", "y",      pillar2_y);
+setnamed("TiO2_prism_2", "x span", pillar2_xspan);
+setnamed("TiO2_prism_2", "y span", pillar2_yspan);
+setnamed("TiO2_prism_2", "z min",  0);
+setnamed("TiO2_prism_2", "z max",  prism_height);
+
+# 仅用于 Script Prompt 检查；不影响 sweep。
+actual_gap = (pillar2_x-pillar2_xspan/2) - (pillar1_x+pillar1_xspan/2);
+?("pillar 2 center x = "+num2str(pillar2_x*1e9)+" nm");
+?("actual edge gap = "+num2str(actual_gap*1e9)+" nm");

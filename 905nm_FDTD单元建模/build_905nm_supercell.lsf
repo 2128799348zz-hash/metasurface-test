@@ -18,19 +18,19 @@ Sy      = 450e-9;       # y 向 supercell 周期
 n_TiO2 = 2.30;
 n_SiO2 = 1.45;
 
-# TiO2 双矩形棱柱第一版几何；不同横向尺寸、不同 x 位置打破 x 镜像对称性。
-# 后续 parameter sweep 应扫描 prism1_xspan、prism1_yspan、prism2_xspan、
-# prism2_yspan、prism1_x、prism2_x 和 prism_height。
+# 粗扫描几何：pillar 1 固定；pillar 2 的尺寸和边缘间距 gap 为扫描参数。
+# pillar 2 的中心位置由 gap 与 prism2_xspan 自动计算，始终不与 pillar 1 重叠。
 # 不使用 h、x1、y1 等名称，避免与 Lumerical 内置常量冲突。
-prism_height = 650e-9;        # TiO2 棱柱高度
-prism1_xspan = 150e-9;        # prism_1 x 向宽度
-prism1_yspan = 230e-9;        # prism_1 y 向长度
-prism2_xspan = 220e-9;        # prism_2 x 向宽度
-prism2_yspan = 310e-9;        # prism_2 y 向长度
-prism1_x = -260e-9;           # prism_1 中心 x 坐标
-prism2_x =  210e-9;           # prism_2 中心 x 坐标
+prism_height = 630e-9;        # 两个 TiO2 棱柱的固定高度
+prism1_xspan = 250e-9;        # 固定 pillar 1 的 Lx1
+prism1_yspan = 200e-9;        # 固定 pillar 1 的 Ly1
+prism1_x = -250e-9;           # 固定 pillar 1 的 x1
 prism1_y = 0;
-prism2_y = 0;
+prism2_xspan = 100e-9;        # pillar 2 初始 Lx2；粗扫描范围 100:50:400 nm
+prism2_yspan = 100e-9;        # pillar 2 初始 Ly2；粗扫描范围 100:50:300 nm
+gap = 40e-9;                  # 两柱 x 向边缘间距；粗扫描范围 40:40:240 nm
+prism2_x = prism1_x + prism1_xspan/2 + gap + prism2_xspan/2;
+prism2_y = 0;                 # 粗扫描中固定 y2=0
 
 # z 向布局：光从空气侧（+z）沿 -z 正入射，依次经过 TiO2 棱柱和 SiO2 基底。
 t_sub       = 1000e-9;  # 基底在仿真域内的厚度
