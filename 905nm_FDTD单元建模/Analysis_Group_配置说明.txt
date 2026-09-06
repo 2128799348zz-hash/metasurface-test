@@ -9,7 +9,7 @@
 配置步骤：
   1. 右键 Analysis Group，选择 Edit object。
   2. 打开 Analysis -> Variables。
-  3. 在 Results 区域点击 Add，依次添加以下 7 个结果名：
+  3. 在 Results 区域点击 Add，依次添加以下 9 个结果名：
 
        eta_m1
        eta_0
@@ -18,6 +18,8 @@
        phi_0
        phi_p1
        order_results
+       T_total
+       valid_orders
 
      名称必须与 analysis_group_T_orders_script.lsf 中的变量名完全一致。
 
@@ -38,8 +40,16 @@
     3 x 3 矩阵。行对应 N=-1、0、+1；列为：
     [衍射级次编号 N，效率 eta_N，相位 phi_N(rad)]。
 
+  T_total：
+    所有透射级次功率之和相对于入射功率的总透射率。
+
+  valid_orders：
+    等于 1 表示 (-1,0)、(0,0)、(+1,0) 均为可传播级次；
+    等于 0 表示至少一个目标级次不存在，此时六个 eta/phi 输出保持为 0。
+
 用于 Parameter Sweep：
-  在 Optimizations and Sweeps 中，将该 Analysis Group 的以上结果添加为 Sweep Results。
+  在 Optimizations and Sweeps 中，至少将 eta_m1、eta_0、eta_p1、
+  phi_m1、phi_0、phi_p1、T_total 和 valid_orders 添加为 Sweep Results。
   每一组棱柱几何参数运行结束后，Parameter Sweep 会自动保存对应结果。
 
 说明：

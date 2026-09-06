@@ -1,47 +1,91 @@
-# 粘贴位置：Analysis Group -> Analysis -> Script
-# 前提：监视器 T 已经位于这个 Analysis Group 内。
-# 输出侧：SiO2 基底；透射光沿 -z 传播。
+# analysis_group_T_orders_script.lsf
+# 粘贴位置：analysis group -> Analysis -> Script
+#
+# 前提：
+# 1. 监视器 T 位于本 Analysis Group 内；
+# 2. 输出介质为 n=1.45 的 SiO2；
+# 3. 透射光沿 -z 传播；
+# 4. 源为 x 偏振，因此用各级次的复 Ex 相位作为 phi_N。
 
 monitor_name = "T";
 output_index = 1.45;
 projection_direction = -1;
-frequency_index = 1;
+frequency_index = 1;       # T 中要分析的频率点
+projected_f_slot = 1;      # 本次仅投影一个频率，因此返回数据的频率槽恒为 1
 
-# grating()：各级次占总透射功率的比例；
-# transmission()：总透射功率相对于入射功率的比例。
-G = grating(monitor_name, frequency_index, output_index, projection_direction);
-N = gratingn(monitor_name, frequency_index, output_index, projection_direction);
-M = gratingm(monitor_name, frequency_index, output_index, projection_direction);
-T_total = abs(pinch(transmission(monitor_name)));
+###############################################################################
+# 1. 总透射率与光栅级次投影
+###############################################################################
+T_all = transmission(monitor_name);
+T_total = abs(pinch(T_all(frequency_index)));
 
-# gratingvector() 返回复矢量 [Ex,Ey,Ez]。
-# 源为 x 偏振、目标级次 m=0，故使用复 Ex 的相角作为 phi_N。
-Gv = gratingvector(monitor_name, frequency_index, output_index, projection_direction);
+# G 的维度为 N x M x P；G 中全部传播级次的功率比例之和为 1。
+G = grating(monitor_name,frequency_index,output_index,projection_direction);
+N = gratingn(monitor_name,frequency_index,output_index,projection_direction);
+M = gratingm(monitor_name,frequency_index,output_index,projection_direction);
 
-ix_m1 = find(N,-1);
-ix_0  = find(N, 0);
-ix_p1 = find(N, 1);
-iy_0  = find(M, 0);
+# Gv 的维度为 N x M x P x 3；最后一维依次为 Ex、Ey、Ez。
+Gv = gratingvector(monitor_name,frequency_index,output_index,projection_direction);
 
-# 三个级次相对于入射功率的透射效率。
-eta_m1 = pinch(G(ix_m1,iy_0,frequency_index))*T_total;
-eta_0  = pinch(G(ix_0, iy_0,frequency_index))*T_total;
-eta_p1 = pinch(G(ix_p1,iy_0,frequency_index))*T_total;
+###############################################################################
+# 2. 精确寻找 (N,M)=(-1,0)、(0,0)、(+1,0)
+###############################################################################
+# find(vector==value) 在目标不存在时返回 0；不能用 find(vector,value)，
+# 因为后者会返回“最接近 value”的级次。
+ix_m1 = find(N==-1);
+ix_0  = find(N==0);
+ix_p1 = find(N==1);
+iy_0  = find(M==0);
 
-# 三个级次的复 Ex 振幅与相位。统一映射到 [0, 2*pi)，
-# 以便直接和 MATLAB 的 phiC_m1、phiC_0、phiC_p1 进行环形相位匹配。
-A_m1 = pinch(Gv(ix_m1,iy_0,frequency_index,1));
-A_0  = pinch(Gv(ix_0, iy_0,frequency_index,1));
-A_p1 = pinch(Gv(ix_p1,iy_0,frequency_index,1));
+valid_orders = 1;
 
-phi_m1 = mod(angle(A_m1), 2*pi);
-phi_0  = mod(angle(A_0),  2*pi);
-phi_p1 = mod(angle(A_p1), 2*pi);
+# 先初始化固定尺寸输出，保证 Parameter Sweep 的每个点具有相同结果结构。
+eta_m1 = 0;
+eta_0  = 0;
+eta_p1 = 0;
+phi_m1 = 0;
+phi_0  = 0;
+phi_p1 = 0;
 
-# 汇总矩阵：行对应 N=-1,0,+1；列为 [N, eta_N, phi_N(rad)]。
-order_results = [-1, eta_m1, phi_m1;
-                  0, eta_0,  phi_0;
-                  1, eta_p1, phi_p1];
+if ((ix_m1==0) | (ix_0==0) | (ix_p1==0) | (iy_0==0)) {
+    valid_orders = 0;
+    ?"Warning: one or more required diffraction orders are not propagating.";
+} else {
+
+    ###########################################################################
+    # 3. 各级次相对于入射功率的透射效率
+    ###########################################################################
+    # grating() 给出各级次占总透射功率的比例，乘 T_total 后得到相对于
+    # 入射光源功率的效率。由于只请求了一个频率，G 的第三维索引必须为 1。
+    eta_m1 = real(pinch(G(ix_m1,iy_0,projected_f_slot)))*T_total;
+    eta_0  = real(pinch(G(ix_0, iy_0,projected_f_slot)))*T_total;
+    eta_p1 = real(pinch(G(ix_p1,iy_0,projected_f_slot)))*T_total;
+
+    ###########################################################################
+    # 4. 复 Ex 振幅及其相位
+    ###########################################################################
+    # Gv 的第四维索引 1 表示 Ex；第三维索引 1 是本次投影的唯一频率槽。
+    A_m1 = pinch(Gv(ix_m1,iy_0,projected_f_slot,1));
+    A_0  = pinch(Gv(ix_0, iy_0,projected_f_slot,1));
+    A_p1 = pinch(Gv(ix_p1,iy_0,projected_f_slot,1));
+
+    # angle() 的结果映射到 [0,2*pi)，便于与 MATLAB 目标相位环形匹配。
+    phi_m1 = mod(angle(A_m1),2*pi);
+    phi_0  = mod(angle(A_0), 2*pi);
+    phi_p1 = mod(angle(A_p1),2*pi);
+}
+
+###############################################################################
+# 5. 固定尺寸汇总结果
+###############################################################################
+# 行：N=-1,0,+1；列：[N, eta_N, phi_N(rad)]。
+order_results = [-1,eta_m1,phi_m1;
+                  0,eta_0, phi_0;
+                  1,eta_p1,phi_p1];
 
 ?"Columns: order, eta_N, phi_N [rad]";
 ?order_results;
+?("valid_orders = "+num2str(valid_orders));
+
+# 注意：当某一级效率非常接近 0 时，其相位在数值上不稳定。后续筛选单元时
+# 应先设置最低效率阈值，再比较相位误差。
