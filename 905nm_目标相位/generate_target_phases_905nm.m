@@ -120,8 +120,8 @@ for n = 1:3
     cb = colorbar;
     ylabel(cb, '相位 [rad]');
 end
-sgtitle(sprintf(['905 nm 三通道目标相位（S_x = %.0f nm，', ...
-    '\theta_{\pm1} = \pm%.2f^\circ）'], Sx*1e9, theta_p1_deg));
+sgtitle(sprintf('905 nm 三通道目标相位（Sx = %.0f nm，±1 级衍射角 近似为 ±%.2f°）', ...
+    Sx*1e9, theta_p1_deg), 'Interpreter', 'none');
 exportgraphics(gcf, fullfile(output_dir, 'target_phase_maps_905nm.png'), ...
     'Resolution', 300);
 
