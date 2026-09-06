@@ -7,6 +7,10 @@
 # 扫描时只需改变 gap、x2span、y2span；本脚本会自动更新 TiO2_prism_2 的
 # x 坐标，使 gap 始终是两根棱柱在 x 方向的“边缘到边缘”间隔：
 # x2 = x1 + x1span/2 + gap + x2span/2。
+#
+# 当前模型树：
+# model -> unit group -> TiO2_prism_1, TiO2_prism_2
+#       -> analysis group -> source_905nm, T
 
 ###############################################################################
 # 从 model 的 User properties 读取几何参数
@@ -32,20 +36,29 @@ pillar2_x = pillar1_x + pillar1_xspan/2 + pillar_gap + pillar2_xspan/2;
 ###############################################################################
 # 几何合法性检查（在写入模型前执行）
 # 约束：两个柱均完整位于一个周期单元内，且相互之间不能接触或重叠。
-# 若任一条件不满足，error() 会终止本次 FDTD 运行，不会修改为无效几何。
+# 若任一条件不满足，break 会停止 Setup script；由于检查位于所有 setnamed 前，
+# 当前模型不会被更新为无效几何。
 ###############################################################################
 Sx = 1350e-9;           # 必须与 FDTD 的 x span 保持一致
 Sy = 450e-9;            # 必须与 FDTD 的 y span 保持一致
 edge_clearance = 1e-12; # 避免柱体与周期边界或彼此刚好接触
 
+# 使用层级对象名称，确保结构位于 group 内时仍能准确更新。
+prism1_name = "unit group::TiO2_prism_1";
+prism2_name = "unit group::TiO2_prism_2";
+source_name = "analysis group::source_905nm";
+
 if (pillar1_xspan <= 0 | pillar1_yspan <= 0 | pillar2_xspan <= 0 | pillar2_yspan <= 0) {
-    error("Invalid geometry: all x span and y span values must be positive.");
+    ?("Invalid geometry: all x span and y span values must be positive.");
+    break;
 }
 if (prism_height <= 0) {
-    error("Invalid geometry: prism height must be positive.");
+    ?("Invalid geometry: prism height must be positive.");
+    break;
 }
 if (pillar_gap <= edge_clearance) {
-    error("Invalid geometry: gap must be greater than 0.");
+    ?("Invalid geometry: gap must be greater than 0.");
+    break;
 }
 
 p1_xmin = pillar1_x - pillar1_xspan/2;
@@ -60,15 +73,18 @@ p2_ymax = pillar2_y + pillar2_yspan/2;
 # 柱必须留在 [-Sx/2,Sx/2] × [-Sy/2,Sy/2] 内，
 # 否则会和其周期复制像接触/重叠，不能再视作“一个双柱 supercell”。
 if (p1_xmin <= -Sx/2+edge_clearance | p1_xmax >= Sx/2-edge_clearance | p1_ymin <= -Sy/2+edge_clearance | p1_ymax >= Sy/2-edge_clearance) {
-    error("Invalid geometry: TiO2_prism_1 reaches or crosses a periodic-cell boundary.");
+    ?("Invalid geometry: TiO2_prism_1 reaches or crosses a periodic-cell boundary.");
+    break;
 }
 if (p2_xmin <= -Sx/2+edge_clearance | p2_xmax >= Sx/2-edge_clearance | p2_ymin <= -Sy/2+edge_clearance | p2_ymax >= Sy/2-edge_clearance) {
-    error("Invalid geometry: TiO2_prism_2 reaches or crosses a periodic-cell boundary.");
+    ?("Invalid geometry: TiO2_prism_2 reaches or crosses a periodic-cell boundary.");
+    break;
 }
 
 actual_gap = p2_xmin - p1_xmax;
 if (actual_gap <= edge_clearance) {
-    error("Invalid geometry: the two prisms touch or overlap in x.");
+    ?("Invalid geometry: the two prisms touch or overlap in x.");
+    break;
 }
 
 ###############################################################################
@@ -77,24 +93,24 @@ if (actual_gap <= edge_clearance) {
 # 让 FDTD 顶部空气层、光源和局部网格随高度同步移动，避免高度扫描时光源
 # 落进棱柱或网格区域不再覆盖柱顶。数值沿用建模脚本的 850/500/50 nm 裕量。
 setnamed("FDTD", "z max", prism_height+850e-9);
-setnamed("source_905nm", "z", prism_height+500e-9);
+setnamed(source_name, "z", prism_height+500e-9);
 if (getnamednumber("mesh_pillars")>0) {
     setnamed("mesh_pillars", "z max", prism_height+50e-9);
 }
 
-setnamed("TiO2_prism_1", "x",      pillar1_x);
-setnamed("TiO2_prism_1", "y",      pillar1_y);
-setnamed("TiO2_prism_1", "x span", pillar1_xspan);
-setnamed("TiO2_prism_1", "y span", pillar1_yspan);
-setnamed("TiO2_prism_1", "z min",  0);
-setnamed("TiO2_prism_1", "z max",  prism_height);
+setnamed(prism1_name, "x",      pillar1_x);
+setnamed(prism1_name, "y",      pillar1_y);
+setnamed(prism1_name, "x span", pillar1_xspan);
+setnamed(prism1_name, "y span", pillar1_yspan);
+setnamed(prism1_name, "z min",  0);
+setnamed(prism1_name, "z max",  prism_height);
 
-setnamed("TiO2_prism_2", "x",      pillar2_x);
-setnamed("TiO2_prism_2", "y",      pillar2_y);
-setnamed("TiO2_prism_2", "x span", pillar2_xspan);
-setnamed("TiO2_prism_2", "y span", pillar2_yspan);
-setnamed("TiO2_prism_2", "z min",  0);
-setnamed("TiO2_prism_2", "z max",  prism_height);
+setnamed(prism2_name, "x",      pillar2_x);
+setnamed(prism2_name, "y",      pillar2_y);
+setnamed(prism2_name, "x span", pillar2_xspan);
+setnamed(prism2_name, "y span", pillar2_yspan);
+setnamed(prism2_name, "z min",  0);
+setnamed(prism2_name, "z max",  prism_height);
 
 # 仅用于 Script Prompt 检查；不影响 sweep。
 ?("pillar 2 center x = "+num2str(pillar2_x*1e9)+" nm");
