@@ -105,23 +105,23 @@ save(fullfile(output_dir, 'target_phases_905nm.mat'), ...
 figure('Color', 'w', 'Position', [100 100 1300 420]);
 phase_maps = {phiC_m1, phiC_0, phiC_p1};
 titles = { ...
-    sprintf('C_{-1}: focused OAM (l = %+d)', l), ...
-    'C_0: planar wavefront', ...
-    sprintf('C_{+1}: Bessel (\beta = %.1f^\circ)', beta_deg)};
+    sprintf('C_{-1}：聚焦 OAM 光束（l = %+d）', l), ...
+    'C_0：平面波', ...
+    sprintf('C_{+1}：贝塞尔光束（锥角 = %.1f°）', beta_deg)};
 
 for n = 1:3
     subplot(1, 3, n);
     imagesc(x*1e6, y*1e6, phase_maps{n});
     axis image xy;
-    xlabel('x [\mum]'); ylabel('y [\mum]');
+    xlabel('x 坐标 [\mum]'); ylabel('y 坐标 [\mum]');
     title(titles{n});
     colormap(gca, hsv(256));
     caxis([0 2*pi]);
     cb = colorbar;
-    ylabel(cb, 'phase [rad]');
+    ylabel(cb, '相位 [rad]');
 end
-sgtitle(sprintf(['Target phases for 905 nm, S_x = %.0f nm, ', ...
-    '\theta_{\pm1} = \pm%.2f^\circ'], Sx*1e9, theta_p1_deg));
+sgtitle(sprintf(['905 nm 三通道目标相位（S_x = %.0f nm，', ...
+    '\theta_{\pm1} = \pm%.2f^\circ）'], Sx*1e9, theta_p1_deg));
 exportgraphics(gcf, fullfile(output_dir, 'target_phase_maps_905nm.png'), ...
     'Resolution', 300);
 
