@@ -1,0 +1,49 @@
+第二轮双柱联合 supercell library 扫描方案（最终版）
+
+目标：
+  建立双 TiO2 矩形棱柱的联合 supercell library，同时优化
+  C_-1、C_0、C_+1 的幅度和相位调控。
+
+固定条件：
+  波长：lambda0 = 905 nm。
+  入射：x 偏振平面波正入射，自空气侧沿 -z 入射。
+  周期：Sx = 1350 nm，Sy = 450 nm。
+  材料：TiO2 棱柱，SiO2 基底（n=1.45）。
+  边界：x/y Periodic，z PML。
+  高度：height = 630 nm。
+  柱中心：x1 = -250 nm，y1 = 0，y2 = 0。
+  本轮不扫描 x1、y1、y2 或 height。
+
+扫描变量：
+  x1span = Lx1 = 100:50:300 nm（5 点）。
+  x2span = Lx2 = 100:50:300 nm（5 点）。
+  y1span = Ly1 = 100:25:200 nm（5 点）。
+  y2span = Ly2 = 100:25:200 nm（5 点）。
+  gap = 80:40:160 nm（3 点）。
+
+柱 2 的位置：
+  x2 = x1 + x1span/2 + gap + x2span/2。
+  因而 gap 始终是两柱 x 方向的真实边缘间距。
+
+扫描数量：
+  5 x 5 x 5 x 5 x 3 = 1875 组。
+  建议按 gap 分为三批：
+    gap = 80 nm：625 组；
+    gap = 120 nm：625 组；
+    gap = 160 nm：625 组。
+
+几何合法性核对：
+  最不利情况为 Lx1=Lx2=300 nm、gap=160 nm。
+  柱 1 的 x 范围为 [-400,-100] nm；
+  柱 2 的 x 范围为 [60,360] nm。
+  均位于 x 周期单元 [-675,675] nm 内；Ly 最大为 200 nm，
+  均位于 y 周期单元 [-225,225] nm 内；两柱最小边缘间距为 80 nm。
+  所有 1875 组均满足当前 model_setup_gap_control.lsf 的几何合法性约束。
+
+每组保存结果：
+  eta_m1、eta_0、eta_p1；
+  phi_m1、phi_0、phi_p1。
+
+不保存：
+  复系数 C_N、T_total、eta_other、valid_orders、order_results，
+  以及监视器 T 的完整 E/H 场阵列。

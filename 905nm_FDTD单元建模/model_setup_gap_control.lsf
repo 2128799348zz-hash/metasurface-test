@@ -4,8 +4,8 @@
 # model 的 User properties 必须包含：
 # x1, y1, gap, y2, x1span, y1span, x2span, y2span, height（均为 Length）。
 #
-# 扫描时只需改变 gap、x2span、y2span；本脚本会自动更新 TiO2_prism_2 的
-# x 坐标，使 gap 始终是两根棱柱在 x 方向的“边缘到边缘”间隔：
+# 可扫描 x1span、y1span、x2span、y2span、gap 与 height；本脚本会自动更新
+# TiO2_prism_2 的 x 坐标，使 gap 始终是两根棱柱在 x 方向的“边缘到边缘”间隔：
 # x2 = x1 + x1span/2 + gap + x2span/2。
 #
 # 当前模型树：

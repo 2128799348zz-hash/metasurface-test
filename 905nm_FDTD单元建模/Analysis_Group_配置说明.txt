@@ -1,15 +1,16 @@
-目标：让 Analysis Group 自动输出 -1、0、+1 级的效率 eta_N 与相位 phi_N。
+目标：
+  Analysis Group 仅输出三个目标级次的效率与相位：
+  eta_m1、eta_0、eta_p1、phi_m1、phi_0、phi_p1。
 
 前提：
-  1. 监视器名称必须为 T。
-  2. 监视器 T 必须在该 Analysis Group 的子节点内。
-  3. 本模型中光从空气侧沿 -z 进入 SiO2 基底，因此分析脚本使用
-     output_index = 1.45 和 projection_direction = -1。
+  1. 监视器名称为 T，且位于该 Analysis Group 内。
+  2. 透射进入 SiO2 基底，故 output_index=1.45、projection_direction=-1。
+  3. T 的位置、偏振、工作波长和投影方向在全部扫描中保持不变。
 
-配置步骤：
-  1. 右键 Analysis Group，选择 Edit object。
+配置：
+  1. 右键 analysis group，选择 Edit object。
   2. 打开 Analysis -> Variables。
-  3. 在 Results 区域点击 Add，依次添加以下 9 个结果名：
+  3. 在 Results 区域仅添加以下六个结果名：
 
        eta_m1
        eta_0
@@ -17,40 +18,25 @@
        phi_m1
        phi_0
        phi_p1
-       order_results
-       T_total
-       valid_orders
 
-     名称必须与 analysis_group_T_orders_script.lsf 中的变量名完全一致。
-
-  4. 打开 Analysis -> Script。
-  5. 将 analysis_group_T_orders_script.lsf 的全部内容复制并粘贴进去。
-  6. 点击 OK 保存。
-  7. 运行 FDTD；在 Analysis 模式中点击 Run Analysis。
+  4. 打开 Analysis -> Script，粘贴 analysis_group_T_orders_script.lsf。
+  5. 点击 OK；单次 FDTD 仿真结束后运行 Run Analysis，确认六个结果均有数值。
 
 结果含义：
   eta_m1、eta_0、eta_p1：
-    -1、0、+1 级相对于入射功率的透射效率。
+    N=-1、0、+1 级相对于入射功率的透射效率。
 
   phi_m1、phi_0、phi_p1：
-    由各级次复 Ex 投影得到的相位，单位 rad，范围 [0,2*pi)。
-    对所有 library 单元必须使用固定的 T 位置、偏振、波长和投影方向。
+    对应级次复 Ex 投影的相位，单位 rad，范围 [0,2*pi)。
 
-  order_results：
-    3 x 3 矩阵。行对应 N=-1、0、+1；列为：
-    [衍射级次编号 N，效率 eta_N，相位 phi_N(rad)]。
+Parameter Sweep：
+  在 Sweep 的 Results 区域仅添加以下完整路径：
 
-  T_total：
-    所有透射级次功率之和相对于入射功率的总透射率。
+       ::model::analysis group::eta_m1
+       ::model::analysis group::eta_0
+       ::model::analysis group::eta_p1
+       ::model::analysis group::phi_m1
+       ::model::analysis group::phi_0
+       ::model::analysis group::phi_p1
 
-  valid_orders：
-    等于 1 表示 (-1,0)、(0,0)、(+1,0) 均为可传播级次；
-    等于 0 表示至少一个目标级次不存在，此时六个 eta/phi 输出保持为 0。
-
-用于 Parameter Sweep：
-  在 Optimizations and Sweeps 中，至少将 eta_m1、eta_0、eta_p1、
-  phi_m1、phi_0、phi_p1、T_total 和 valid_orders 添加为 Sweep Results。
-  每一组棱柱几何参数运行结束后，Parameter Sweep 会自动保存对应结果。
-
-说明：
-  本组不使用 extract_T_orders.lsf；后者保留为独立调试/导出工具。
+  不要将监视器 T 的 E/H 场、order_results 或其他矩阵加入 Sweep Results。
