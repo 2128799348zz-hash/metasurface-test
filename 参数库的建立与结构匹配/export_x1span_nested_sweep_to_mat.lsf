@@ -1,0 +1,34 @@
+# export_x1span_nested_sweep_to_mat.lsf
+# 用途：导出顶层嵌套 Sweep x1span 的六个必要结果到 MATLAB .mat 文件。
+#
+# 当前嵌套关系：
+# x1span -> y1span -> gap -> x2span -> y2span
+#
+# 输出文件保存在 FDTD 当前工作目录：
+# second_round_905nm_library.mat
+
+sweep_name = "x1span";
+
+# 先显示顶层 Sweep 中实际可用的结果名称，便于核对。
+?("Available results in "+sweep_name+":");
+?getsweepresult(sweep_name);
+
+# 六个结果必须已逐层添加并汇总到顶层 x1span Sweep。
+if (havesweepresult(sweep_name,"eta_m1") == 0) {
+    ?"Error: eta_m1 is not available at the top-level x1span sweep.";
+    ?"Add the six inner-sweep results to each parent sweep before exporting.";
+    break;
+}
+
+eta_m1_data = getsweepresult(sweep_name,"eta_m1");
+eta_0_data  = getsweepresult(sweep_name,"eta_0");
+eta_p1_data = getsweepresult(sweep_name,"eta_p1");
+phi_m1_data = getsweepresult(sweep_name,"phi_m1");
+phi_0_data  = getsweepresult(sweep_name,"phi_0");
+phi_p1_data = getsweepresult(sweep_name,"phi_p1");
+
+# 每个 dataset 自带 x1span、y1span、gap、x2span、y2span 参数轴。
+# 不导出 T 监视器的完整 E/H 场。
+matlabsave("second_round_905nm_library",eta_m1_data,eta_0_data,eta_p1_data,phi_m1_data,phi_0_data,phi_p1_data);
+
+?"Export complete: second_round_905nm_library.mat";
