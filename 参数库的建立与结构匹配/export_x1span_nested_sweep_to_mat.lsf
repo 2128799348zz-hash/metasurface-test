@@ -5,7 +5,7 @@
 # x1span -> y1span -> gap -> x2span -> y2span
 #
 # 输出文件保存在 FDTD 当前工作目录：
-# second_round_905nm_library.mat
+# 905nm_dual_pillar_structure_library.mat
 
 sweep_name = "x1span";
 
@@ -29,6 +29,6 @@ phi_p1_data = getsweepresult(sweep_name,"phi_p1");
 
 # 每个 dataset 自带 x1span、y1span、gap、x2span、y2span 参数轴。
 # 不导出 T 监视器的完整 E/H 场。
-matlabsave("second_round_905nm_library",eta_m1_data,eta_0_data,eta_p1_data,phi_m1_data,phi_0_data,phi_p1_data);
+matlabsave("905nm_dual_pillar_structure_library",eta_m1_data,eta_0_data,eta_p1_data,phi_m1_data,phi_0_data,phi_p1_data);
 
-?"Export complete: second_round_905nm_library.mat";
+?"Export complete: 905nm_dual_pillar_structure_library.mat";
