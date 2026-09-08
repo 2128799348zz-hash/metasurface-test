@@ -28,16 +28,12 @@ gap    = get_axis(data, 'gap');
 x2span = get_axis(data, 'x2span');
 y2span = get_axis(data, 'y2span');
 
-library_size = size(phi_m1);
-% Ignore singleton dimensions retained by Lumerical (including leading ones).
-library_size = library_size(library_size ~= 1);
-library_size(end+1:5) = 1;
 % The array dimensions follow the Sweep tree: outer sweep first.
 expected_size = [numel(x1span), numel(y1span), numel(gap), ...
                  numel(x2span), numel(y2span)];
-assert(isequal(library_size, expected_size), ...
-    '结构库尺寸为 [%s]，但 Sweep 轴对应的尺寸应为 [%s]。', ...
-    num2str(library_size), num2str(expected_size));
+assert(numel(phi_m1) == prod(expected_size), ...
+    '结构库共有 %d 个相位数据，但 Sweep 参数应对应 %d 组结构。', ...
+    numel(phi_m1), prod(expected_size));
 
 [Lx1, Ly1, Gap, Lx2, Ly2] = ndgrid(x1span, y1span, gap, x2span, y2span);
 phi_m1 = phi_m1(:);  phi_0 = phi_0(:);  phi_p1 = phi_p1(:);
@@ -58,9 +54,8 @@ for n = 1:n_cells
     [best_cost(n), best_index(n)] = min(cost);
 end
 
-% 当前结构库固定 x1=-250 nm、高度=630 nm；x2 与 FDTD 的 gap 定义一致。
+% 当前结构库固定 x1=-250 nm；x2 与 FDTD 的 gap 定义一致。
 x1_fixed = -250e-9;
-height_fixed = 630e-9;
 selected_Lx1 = Lx1(best_index);  selected_Ly1 = Ly1(best_index);
 selected_gap = Gap(best_index);
 selected_Lx2 = Lx2(best_index);  selected_Ly2 = Ly2(best_index);
@@ -68,13 +63,6 @@ selected_x2 = x1_fixed + selected_Lx1/2 + selected_gap + selected_Lx2/2;
 
 Ny = size(target.phiC_m1, 1);
 Nx = size(target.phiC_m1, 2);
-matched_table = table( ...
-    repelem((1:Nx)', Ny), repmat((1:Ny)', Nx, 1), target.X(:), target.Y(:), ...
-    selected_Lx1, selected_Ly1, selected_gap, selected_Lx2, selected_Ly2, ...
-    selected_x2, repmat(height_fixed, n_cells, 1), best_cost, ...
-    'VariableNames', {'ix','iy','x_m','y_m', ...
-    'Lx1_m','Ly1_m','gap_m','Lx2_m','Ly2_m','x2_m','height_m','cost'});
-
 matched = struct;
 matched.index_map = reshape(best_index, Ny, Nx);
 matched.cost_map = reshape(best_cost, Ny, Nx);
@@ -86,7 +74,6 @@ matched.Ly2_map_m = reshape(selected_Ly2, Ny, Nx);
 matched.x2_map_m = reshape(selected_x2, Ny, Nx);
 
 save(fullfile(this_dir, '905nm_phase_matched_structure_map.mat'), 'matched');
-writetable(matched_table, fullfile(this_dir, '905nm_phase_matched_structure_table.csv'));
 
 fprintf('相位匹配完成：%d 个超胞，平均评价函数 = %.4f。\n', ...
     n_cells, mean(best_cost));
