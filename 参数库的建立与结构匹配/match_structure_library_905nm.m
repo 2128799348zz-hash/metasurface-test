@@ -29,10 +29,8 @@ x2span = get_axis(data, 'x2span');
 y2span = get_axis(data, 'y2span');
 
 library_size = size(phi_m1);
-% Remove trailing singleton dimensions retained by Lumerical.
-while numel(library_size) > 5 && library_size(end) == 1
-    library_size(end) = [];
-end
+% Ignore singleton dimensions retained by Lumerical (including leading ones).
+library_size = library_size(library_size ~= 1);
 library_size(end+1:5) = 1;
 % The array dimensions follow the Sweep tree: outer sweep first.
 expected_size = [numel(x1span), numel(y1span), numel(gap), ...
