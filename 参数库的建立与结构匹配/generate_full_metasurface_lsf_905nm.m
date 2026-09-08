@@ -32,8 +32,8 @@ Sx = T.params.Sx_m;
 Sy = T.params.Sy_m;
 height = 630e-9;
 x1_local = -250e-9;
-n_TiO2 = 2.30;  % 与单元库扫描模型保持一致
-n_SiO2 = 1.45;
+TiO2_material = 'TiO2 (Titanium Dioxide) - Devore';
+SiO2_material = 'SiO2 (Glass) - Palik';
 substrate_thickness = 1000e-9;
 
 % 结构位置由目标相位网格给出；每个网格点即一个 supercell 中心。
@@ -60,7 +60,7 @@ fprintf(fid, 'set("name","SiO2_substrate");\n');
 fprintf(fid, 'set("x",0); set("y",0);\n');
 fprintf(fid, 'set("x span",%.16g); set("y span",%.16g);\n', Nx*Sx, Ny*Sy);
 fprintf(fid, 'set("z min",%.16g); set("z max",0);\n', -substrate_thickness);
-fprintf(fid, 'set("material","<Object defined dielectric>"); set("index",%.16g);\n', n_SiO2);
+fprintf(fid, 'set("material","%s");\n', SiO2_material);
 fprintf(fid, 'addtogroup("full_metasurface");\n\n');
 
 for iy = 1:Ny
@@ -71,9 +71,9 @@ for iy = 1:Ny
         x2 = xc + M.x2_map_m(iy,ix);
 
         write_pillar(fid, sprintf('pillar_1_%02d_%02d', ix, iy), ...
-            x1, yc, M.Lx1_map_m(iy,ix), M.Ly1_map_m(iy,ix), height, n_TiO2);
+            x1, yc, M.Lx1_map_m(iy,ix), M.Ly1_map_m(iy,ix), height, TiO2_material);
         write_pillar(fid, sprintf('pillar_2_%02d_%02d', ix, iy), ...
-            x2, yc, M.Lx2_map_m(iy,ix), M.Ly2_map_m(iy,ix), height, n_TiO2);
+            x2, yc, M.Lx2_map_m(iy,ix), M.Ly2_map_m(iy,ix), height, TiO2_material);
     end
 end
 
@@ -82,12 +82,12 @@ fprintf(fid, '?"Full metasurface geometry created: %d supercells, %d pillars.";\
 
 fprintf('LSF 已生成：%s\n', lsf_file);
 
-function write_pillar(fid, name, x, y, xspan, yspan, height, refractive_index)
+function write_pillar(fid, name, x, y, xspan, yspan, height, material_name)
 fprintf(fid, 'addrect;\n');
 fprintf(fid, 'set("name","%s");\n', name);
 fprintf(fid, 'set("x",%.16g); set("y",%.16g);\n', x, y);
 fprintf(fid, 'set("x span",%.16g); set("y span",%.16g);\n', xspan, yspan);
 fprintf(fid, 'set("z min",0); set("z max",%.16g);\n', height);
-fprintf(fid, 'set("material","<Object defined dielectric>"); set("index",%.16g);\n', refractive_index);
+fprintf(fid, 'set("material","%s");\n', material_name);
 fprintf(fid, 'addtogroup("full_metasurface");\n\n');
 end
