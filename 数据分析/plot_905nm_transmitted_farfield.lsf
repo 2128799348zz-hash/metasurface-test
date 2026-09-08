@@ -1,0 +1,10 @@
+monitor_name = "T";
+frequency_index = 1;
+farfield_points = 401;
+
+Efar = farfield3d(monitor_name, frequency_index, farfield_points, farfield_points);
+
+ux = farfieldux(monitor_name, frequency_index, farfield_points, farfield_points);
+uy = farfielduy(monitor_name, frequency_index, farfield_points, farfield_points);
+
+image(ux, uy, Efar, "u_x", "u_y", "905 nm transmitted far field intensity");

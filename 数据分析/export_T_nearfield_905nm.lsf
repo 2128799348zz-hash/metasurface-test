@@ -1,0 +1,4 @@
+monitor_name = "T";
+output_file = "G:/开题报告实验验证/代码文件/数据分析/T_nearfield_905nm";
+Edata = getresult(monitor_name,"E");
+matlabsave(output_file,Edata);
